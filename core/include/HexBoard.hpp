@@ -39,9 +39,8 @@ private:
     DSU dsu_p1;
     DSU dsu_p2;
 
-    int VIRTUAL_TOP, VIRTUAL_BOTTOM;
-    int VIRTUAL_LEFT, VIRTUAL_RIGHT;
-    int GRAPH_TOP, GRAPH_BOTTOM, GRAPH_LEFT, GRAPH_RIGHT;
+    int VIRT_TOP, VIRT_BOTTOM;
+    int VIRT_LEFT, VIRT_RIGHT;
 
     std::shared_ptr<const std::vector<std::vector<int>>> adj;
 
