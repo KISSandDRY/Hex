@@ -12,18 +12,19 @@ namespace Colors {
 }
 
 HexBoard::HexBoard(int r, int c)
-    : rows(r), cols(c), dsu_p1(r * c + 2), dsu_p2(r * c + 2) 
+    : rows(r), cols(c) 
 {
-    board.assign(r * c, EMPTY);
     int N = r * c;
+    board.assign(r * c, EMPTY);
 
     // Virtual Nodes for DSU
-    VIRTUAL_LEFT = N;     VIRTUAL_RIGHT = N + 1;
-    VIRTUAL_TOP  = N;     VIRTUAL_BOTTOM = N + 1;
+    VIRT_TOP  = N;     
+    VIRT_BOTTOM = N + 1;
+    VIRT_LEFT = N + 2;     
+    VIRT_RIGHT = N + 3;
 
-    // Virtual Nodes for Graph logic (Shortest Path)
-    GRAPH_TOP    = N;     GRAPH_BOTTOM = N + 1;
-    GRAPH_LEFT   = N + 2; GRAPH_RIGHT  = N + 3;
+    dsu_p1.resize(N + 4);
+    dsu_p2.resize(N + 4);
 
     build_adjacency();
 }
@@ -78,25 +79,22 @@ bool HexBoard::make_move(int r, int c, int player) {
 
     // Update DSU based on adjacency
     const auto& neighbors = (*adj)[idx];
+
     for (int nb : neighbors) {
+
+        // Handle Virtual connections
         if (nb >= rows * cols) {
-            // Handle Virtual connections
             if (player == PLAYER_1) {
-                if (nb == GRAPH_LEFT)  
-                    dsu_p1.unite(idx, VIRTUAL_LEFT);
-
-                if (nb == GRAPH_RIGHT) 
-                    dsu_p1.unite(idx, VIRTUAL_RIGHT);
+                if (nb == VIRT_LEFT || nb == VIRT_RIGHT)
+                    dsu_p1.unite(idx, nb);
             } else {
-                if (nb == GRAPH_TOP)    
-                    dsu_p2.unite(idx, VIRTUAL_TOP);
-
-                if (nb == GRAPH_BOTTOM) 
-                    dsu_p2.unite(idx, VIRTUAL_BOTTOM);
+                if (nb == VIRT_TOP || nb == VIRT_BOTTOM)
+                    dsu_p2.unite(idx, nb);
             }
 
-        } else if (board[nb] == player) {
-            // Handle Physical connections
+        } 
+        // Handle Physical connections
+        else if (board[nb] == player) {
             if (player == PLAYER_1) 
                 dsu_p1.unite(idx, nb);
             else 
@@ -108,21 +106,21 @@ bool HexBoard::make_move(int r, int c, int player) {
 }
 
 int HexBoard::check_win() {
-    if (dsu_p1.connected(VIRTUAL_LEFT, VIRTUAL_RIGHT)) 
+    if (dsu_p1.connected(VIRT_LEFT, VIRT_RIGHT)) 
         return PLAYER_1;
 
-    if (dsu_p2.connected(VIRTUAL_TOP, VIRTUAL_BOTTOM)) 
+    if (dsu_p2.connected(VIRT_TOP, VIRT_BOTTOM)) 
         return PLAYER_2;
 
     return EMPTY;
 }
 
-// Graph Logic & Heuristics
-
+// Graph Logic, Heuristics
 void HexBoard::build_adjacency() {
     auto new_adj = std::make_shared<std::vector<std::vector<int>>>();
-    int total_nodes = rows * cols;
-    new_adj->assign(total_nodes + 4, {});
+    int N = rows * cols;
+
+    new_adj->assign(N + 4, {});
 
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
@@ -130,23 +128,23 @@ void HexBoard::build_adjacency() {
 
             // Connect to Virtual Nodes
             if (r == 0) {
-                (*new_adj)[idx].push_back(GRAPH_TOP);
-                (*new_adj)[GRAPH_TOP].push_back(idx);
+                (*new_adj)[idx].push_back(VIRT_TOP);
+                (*new_adj)[VIRT_TOP].push_back(idx);
             }
 
             if (r == rows - 1) {
-                (*new_adj)[idx].push_back(GRAPH_BOTTOM);
-                (*new_adj)[GRAPH_BOTTOM].push_back(idx);
+                (*new_adj)[idx].push_back(VIRT_BOTTOM);
+                (*new_adj)[VIRT_BOTTOM].push_back(idx);
             }
 
             if (c == 0) {
-                (*new_adj)[idx].push_back(GRAPH_LEFT);
-                (*new_adj)[GRAPH_LEFT].push_back(idx);
+                (*new_adj)[idx].push_back(VIRT_LEFT);
+                (*new_adj)[VIRT_LEFT].push_back(idx);
             }
 
             if (c == cols - 1) {
-                (*new_adj)[idx].push_back(GRAPH_RIGHT);
-                (*new_adj)[GRAPH_RIGHT].push_back(idx);
+                (*new_adj)[idx].push_back(VIRT_RIGHT);
+                (*new_adj)[VIRT_RIGHT].push_back(idx);
             }
 
             // Hex Grid Offsets
@@ -168,8 +166,8 @@ void HexBoard::build_adjacency() {
 }
 
 int HexBoard::get_shortest_distance(int player) const {
-    int start = (player == PLAYER_1) ? GRAPH_LEFT : GRAPH_TOP;
-    int end   = (player == PLAYER_1) ? GRAPH_RIGHT : GRAPH_BOTTOM;
+    int start = (player == PLAYER_1) ? VIRT_LEFT : VIRT_TOP;
+    int end   = (player == PLAYER_1) ? VIRT_RIGHT : VIRT_BOTTOM;
 
     std::deque<std::pair<int, int>> dq;
     std::vector<int> dist(adj->size(), 9999);
@@ -190,14 +188,16 @@ int HexBoard::get_shortest_distance(int player) const {
         for (int v : (*adj)[u]) {
             int weight = 1;
 
+            // Handle physical node logic
             if (v < rows * cols) {
                 if (board[v] == player) 
-                    weight = 0;
+                    weight = 0; // Already owned = free travel
                 else if (board[v] != EMPTY) 
-                    continue; // Blocked
+                    continue; // Blocked by opponent
 
             } else {
-                weight = 0; // Virtual nodes have 0 weight
+                // Virtual nodes have 0 weight
+                weight = 0; 
             }
 
             if (dist[v] > d + weight) {
@@ -222,11 +222,13 @@ bool HexBoard::dfs(int idx, int player, std::vector<bool>& visited, std::vector<
         return true;
 
     for (int nb : (*adj)[idx]) {
+        // skip virtual nodes
         if (nb >= rows * cols) 
             continue;
 
         if (board[nb] == player && !visited[nb]) 
-            if (dfs(nb, player, visited, path)) return true;
+            if (dfs(nb, player, visited, path)) 
+                return true;
     }
 
     path.pop_back();
