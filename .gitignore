@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+
+compile_flags.txt
+
+core/build/*
+*.pyd
+
+TODO
