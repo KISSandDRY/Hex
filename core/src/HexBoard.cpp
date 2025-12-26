@@ -265,24 +265,24 @@ void HexBoard::print_board() const {
 
     std::cout << "\n   ";
     for (int c = 0; c < cols; ++c)
-        std::cout << BLUE << std::setw(2) << c << " " << RESET;
+        std::cout << BLUE << std::setw(3) << c << " " << RESET;
 
     std::cout << "\n";
 
     for (int r = 0; r < rows; ++r) {
-        std::cout << std::string(2*r, ' ') << RED << std::setw(2) << r << " " << RESET;
+        std::string indent = (r % 2 != 0) ? "  " : "";
+        
+        std::cout << indent << RED << std::setw(2) << r << " " << RESET;
 
         for (int c = 0; c < cols; ++c) {
             int val = board[get_index(r, c)];
 
             if (val == PLAYER_1) 
-                std::cout << RED << " X " << RESET;
-
+                std::cout << RED << " X  " << RESET;
             else if (val == PLAYER_2) 
-                std::cout << BLUE << " O " << RESET;
-
+                std::cout << BLUE << " O  " << RESET;
             else 
-                std::cout << GRAY << " . " << RESET;
+                std::cout << GRAY << " .  " << RESET;
         }
 
         std::cout << "\n";
