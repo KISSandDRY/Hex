@@ -20,6 +20,7 @@ class HexGameManager:
 
         self.board = hexlib.HexBoard(board_size, board_size)
         self.turn = PLAYER_1
+        self.last_move = None
         self.winner = EMPTY
         self.winning_path = []
 
@@ -60,7 +61,7 @@ class HexGameManager:
 
     def draw(self):
         self.screen.fill(BG_COLOR)
-        hex_draw.draw_board(self.screen, self.board, self.render_cfg, self.turn)
+        hex_draw.draw_board(self.screen, self.board, self.render_cfg, self.turn, self.last_move)
 
         if self.winner != EMPTY:
             hex_draw.draw_winning_path(self.screen, self.board, self.winner, self.render_cfg)
@@ -145,6 +146,7 @@ class HexGameManager:
         if not self.board.make_move(r, c, self.turn):
             return
 
+        self.last_move = (r, c)
         self.sound.play("move")
         self._check_for_winner_or_continue()
 
