@@ -83,7 +83,7 @@ def draw_border(surface, rows, cols, size, off_x, off_y, current_turn):
         points = get_hex_corners(cx, cy, size)
         draw_hex_bottom_border(surface, points, p2_border_color, 3)
 
-def draw_board(surface, board, screen_config, current_turn):
+def draw_board(surface, board, screen_config, current_turn, last_move=None):
     rows, cols = board.rows, board.cols
     off_x, off_y  = screen_config['offset_x'], screen_config['offset_y']
     size = screen_config['tile_size']
@@ -105,6 +105,14 @@ def draw_board(surface, board, screen_config, current_turn):
 
             pygame.draw.polygon(surface, color, points, width)
             pygame.draw.aalines(surface, HEX_BORDER, True, points)
+
+            if last_move and last_move == (r, c):
+                highlight_size = size * 0.6 
+                highlight_points = get_hex_corners(cx, cy, highlight_size)
+                
+                # highlight_color = (255, 255, 255) # White highlight
+                # pygame.draw.aalines(surface, highlight_color, True, highlight_points)
+                pygame.gfxdraw.filled_polygon(surface, highlight_points, (255, 255, 255, 100))
 
     draw_border(surface, rows, cols, size, off_x, off_y, current_turn)
 
