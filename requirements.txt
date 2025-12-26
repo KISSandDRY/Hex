@@ -1,0 +1,5 @@
+cmake==4.2.0
+numpy==2.3.5
+pybind11==3.0.1
+pygame==2.6.1
+pyperclip==1.11.0
