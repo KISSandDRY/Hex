@@ -3,7 +3,7 @@ import pygame
 import hexlib
 import hex_game
 from hex_settings import *
-from hex_gui import Button, Label, Slider, Selector
+from hex_gui import Background, Button, Image, Label, Slider, Selector
 
 class State:
 
@@ -55,6 +55,8 @@ class MenuState(UIState):
         btn_w, btn_h, gap = 250, 50, 70
 
         self.ui_elements = [
+            Background(),
+
             Button("Play", cx - btn_w // 2, cy - 50, btn_w, btn_h,
                    lambda: self.app.change_state("play_menu")),
 
@@ -63,14 +65,14 @@ class MenuState(UIState):
 
             Button("Quit", cx - btn_w // 2, cy - 50 + gap * 2, btn_w, btn_h,
                    self.app.quit),
+            
+            Image(LOGO_PATH, cx-100, 50, 200, 200),
         ]
 
     def handle_input(self, events):
         self._handle_ui(events)
 
     def draw(self) -> None:
-        self.app.screen.fill(BG_COLOR)
-        self._draw_title(CAPTION, 150, self._header_font)
         self._draw_ui()
 
 
@@ -88,6 +90,7 @@ class SettingsState(UIState):
                                       self._set_size)
 
         self.ui_elements = [
+            Background(),
             Label("Board Size:", cx - 150, 200),
             Label("Music:", cx - 150, 280),
             Label("SFX:", cx - 150, 340),
@@ -111,9 +114,8 @@ class SettingsState(UIState):
             self.app.sound.set_sfx_volume(self.slider_sfx.val)
 
     def draw(self):
-        self.app.screen.fill(BG_COLOR)
-        self._draw_title("Settings", 80)
         self._draw_ui()
+        self._draw_title("Settings", 80)
 
     def _set_size(self, val):
         self.app.config['board_size'] = val
@@ -130,6 +132,8 @@ class PlayMenuState(UIState):
 
     def show_modes(self):
         self.ui_elements = [
+            Background(),
+
             Button("Player vs Player", self.cx - 125, self.cy - 60, 250, 50,
                    lambda: self.app.change_state("game", mode=GameMode.PVP)),
         
@@ -142,6 +146,8 @@ class PlayMenuState(UIState):
 
     def show_difficulties(self):
         self.ui_elements = [
+            Background(),
+
             Button("Easy", self.cx - 125, self.cy - 60, 250, 50,
                    lambda: self._start_ai_game(hexlib.Difficulty.EASY)),
 
@@ -159,9 +165,8 @@ class PlayMenuState(UIState):
         self._handle_ui(events)
 
     def draw(self) -> None:
-        self.app.screen.fill(BG_COLOR)
-        self._draw_title("Select Mode", 100)
         self._draw_ui()
+        self._draw_title("Select Mode", 100)
 
     def _start_ai_game(self, diff):
         self.app.change_state("game", mode=GameMode.PVAI, diff=hexlib.Difficulty(diff))

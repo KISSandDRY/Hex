@@ -140,3 +140,72 @@ class Selector(UIElement):
     def _next(self):
         self.index = (self.index + 1) % len(self.options)
         self.callback(self.options[self.index])
+
+
+class Image(UIElement):
+
+    def __init__(self, path, x, y, w=None, h=None, center=False):
+        self.path = path
+        
+        try:
+            raw_surf = pygame.image.load(path).convert_alpha()
+
+        except (FileNotFoundError, pygame.error):
+            print(f"Warning: Could not load image '{path}'. Using placeholder.")
+            raw_surf = pygame.Surface((50, 50))
+            raw_surf.fill((200, 50, 50)) 
+
+        if w and h:
+            self.surf = pygame.transform.smoothscale(raw_surf, (w, h))
+        elif w:
+            ratio = w / raw_surf.get_width()
+            h = int(raw_surf.get_height() * ratio)
+            self.surf = pygame.transform.smoothscale(raw_surf, (w, h))
+        elif h:
+            ratio = h / raw_surf.get_height()
+            w = int(raw_surf.get_width() * ratio)
+            self.surf = pygame.transform.smoothscale(raw_surf, (w, h))
+        else:
+            self.surf = raw_surf
+
+        self.rect = self.surf.get_rect()
+        if center:
+            self.rect.center = (x, y)
+        else:
+            self.rect.topleft = (x, y)
+
+    def update(self, events):
+        pass
+
+    def draw(self, screen):
+        screen.blit(self.surf, self.rect)
+
+
+class Background(UIElement):
+
+    def __init__(self, image_path=BG_IMAGE_PATH):
+        self.image = None
+        self.loaded = False
+
+        if os.path.exists(image_path):
+            try:
+                raw_img = pygame.image.load(image_path).convert()
+                scaled_img = pygame.transform.smoothscale(raw_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
+                
+                self.image = scaled_img.convert()
+                self.loaded = True
+
+            except pygame.error as e:
+                print(f"Failed to load background: {e}")
+
+        else:
+            print(f"Background not found at {image_path}, using solid color.")
+
+    def update(self, events) -> Optional[bool]:
+        pass
+
+    def draw(self, screen):
+        if self.loaded and self.image:
+            screen.blit(self.image, (0, 0))
+        else:
+            screen.fill(BG_COLOR)
