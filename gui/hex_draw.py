@@ -3,7 +3,8 @@ import pygame
 import pygame.gfxdraw
 from functools import lru_cache
 
-from hex_settings import *
+from hex_config import hex_cfg
+from hex_defs import PLAYER_1, PLAYER_2
 
 @lru_cache(maxsize=256)
 def get_hex_corners(center_x, center_y, size):
@@ -60,8 +61,8 @@ def draw_hex_right_border(surface, points, r, color, width=4):
     draw_thick_aalines(surface, color, draw_points, width)
 
 def draw_border(surface, rows, cols, size, off_x, off_y, current_turn):
-    p1_border_color = P1_COLOR if current_turn == PLAYER_1 else INACTIVE_BORDER_COLOR
-    p2_border_color = P2_COLOR if current_turn == PLAYER_2 else INACTIVE_BORDER_COLOR
+    p1_border_color = hex_cfg.get_color("p1") if current_turn == PLAYER_1 else hex_cfg.get_color("inactive_border")
+    p2_border_color = hex_cfg.get_color("p2") if current_turn == PLAYER_2 else hex_cfg.get_color("inactive_border")
 
     for r in range(rows):
         cx, cy = grid_to_pixel(r, 0, size, off_x, off_y)
@@ -85,8 +86,8 @@ def draw_border(surface, rows, cols, size, off_x, off_y, current_turn):
 
 def draw_board(surface, board, screen_config, current_turn, last_move=None):
     rows, cols = board.rows, board.cols
-    off_x, off_y  = screen_config['offset_x'], screen_config['offset_y']
-    size = screen_config['tile_size']
+    off_x, off_y  = screen_config["offset_x"], screen_config["offset_y"]
+    size = screen_config["tile_size"]
 
     for r in range(rows):
         for c in range(cols):
@@ -94,24 +95,21 @@ def draw_board(surface, board, screen_config, current_turn, last_move=None):
             cx, cy = grid_to_pixel(r, c, size, off_x, off_y)
             points = get_hex_corners(cx, cy, size)
 
-            color = EMPTY_HEX_COLOR
+            color = hex_cfg.get_color("empty_hex")
             width = 1
             if val == PLAYER_1:
-                color = P1_COLOR
+                color = hex_cfg.get_color("p1")
                 width = 0
             elif val == PLAYER_2:
-                color = P2_COLOR
+                color = hex_cfg.get_color("p2")
                 width = 0
 
             pygame.draw.polygon(surface, color, points, width)
-            pygame.draw.aalines(surface, HEX_BORDER, True, points)
+            pygame.draw.aalines(surface, hex_cfg.get_color("border"), True, points)
 
             if last_move and last_move == (r, c):
                 highlight_size = size * 0.6 
                 highlight_points = get_hex_corners(cx, cy, highlight_size)
-                
-                # highlight_color = (255, 255, 255) # White highlight
-                # pygame.draw.aalines(surface, highlight_color, True, highlight_points)
                 pygame.gfxdraw.filled_polygon(surface, highlight_points, (255, 255, 255, 100))
 
     draw_border(surface, rows, cols, size, off_x, off_y, current_turn)
@@ -123,15 +121,15 @@ def draw_winning_path(surface, board, winner, screen_config):
         return
 
     points = []
-    size = screen_config['tile_size']
-    off_x, off_y = screen_config['offset_x'], screen_config['offset_y']
+    size = screen_config["tile_size"]
+    off_x, off_y = screen_config["offset_x"], screen_config["offset_y"]
 
     for idx in path_indices:
         coord = board.get_coord(idx)
         px, py = grid_to_pixel(coord[0], coord[1], size, off_x, off_y)
         points.append((px, py))
 
-    draw_thick_aalines(surface, WIN_PATH_COLOR, points, width=5)
+    draw_thick_aalines(surface, hex_cfg.get_color("win_path"), points, width=5)
 
 def draw_thick_aalines(surface, color, points, width=6):
     if len(points) > 1:

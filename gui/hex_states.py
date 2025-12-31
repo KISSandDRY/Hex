@@ -2,7 +2,8 @@ import pygame
 
 import hexlib
 import hex_game
-from hex_settings import *
+from hex_defs import GameMode
+from hex_config import hex_cfg
 from hex_gui import Background, Button, Image, Label, Slider, Selector
 
 class State:
@@ -25,8 +26,8 @@ class UIState(State):
     def __init__(self, app):
         super().__init__(app)
         self.ui_elements = []
-        self._header_font = pygame.font.SysFont(FONT_NAME, HEADER_SIZE)
-        self._title_font = pygame.font.SysFont(FONT_NAME, 60)
+        self._header_font = pygame.font.SysFont(hex_cfg.get_system("font_name"), hex_cfg.get_system("header_size"))
+        self._title_font = pygame.font.SysFont(hex_cfg.get_system("font_name"), 60)
 
     def _handle_ui(self, events):
         for el in self.ui_elements:
@@ -41,8 +42,8 @@ class UIState(State):
 
     def _draw_title(self, text, y = 100, font = None):
         font = font or self._title_font
-        surf = font.render(text, True, ACCENT_COLOR)
-        rect = surf.get_rect(center=(SCREEN_WIDTH // 2, y))
+        surf = font.render(text, True, hex_cfg.get_color("accent"))
+        rect = surf.get_rect(center=(hex_cfg.get_system("width") // 2, y))
 
         self.app.screen.blit(surf, rect)
 
@@ -51,7 +52,7 @@ class MenuState(UIState):
 
     def __init__(self, app):
         super().__init__(app)
-        cx, cy = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+        cx, cy = hex_cfg.get_system("width") // 2, hex_cfg.get_system("height") // 2
         btn_w, btn_h, gap = 250, 50, 70
 
         self.ui_elements = [
@@ -66,7 +67,7 @@ class MenuState(UIState):
             Button("Quit", cx - btn_w // 2, cy - 50 + gap * 2, btn_w, btn_h,
                    self.app.quit),
             
-            Image(LOGO_PATH, cx-100, 50, 200, 200),
+            Image(hex_cfg.get_image("logo"), cx - 100, 50, 200, 200),
         ]
 
     def handle_input(self, events):
@@ -80,13 +81,17 @@ class SettingsState(UIState):
 
     def __init__(self, app):
         super().__init__(app)
-        cx = SCREEN_WIDTH // 2
+        cx = hex_cfg.get_system("width") // 2
 
-        self.slider_music = Slider(cx + 50, 285, 200, 20, 0.0, 1.0, app.config["music_volume"])
-        self.slider_sfx = Slider(cx + 50, 345, 200, 20, 0.0, 1.0, app.config["sfx_volume"])
+        current_music = hex_cfg.get_default("music_volume")
+        current_sfx = hex_cfg.get_default("sfx_volume")
+        current_size = hex_cfg.get_default("board_size")
+
+        self.slider_music = Slider(cx + 50, 285, 200, 20, 0.0, 1.0, current_music)
+        self.slider_sfx = Slider(cx + 50, 345, 200, 20, 0.0, 1.0, current_sfx)
         self.selector_size = Selector(cx + 50, 195, 200, 40,
                                       [7, 9, 11, 13, 15],
-                                      app.config["board_size"],
+                                      current_size,
                                       self._set_size)
 
         self.ui_elements = [
@@ -105,20 +110,25 @@ class SettingsState(UIState):
         self._handle_ui(events)
 
     def update(self):
-        if self.slider_music.val != self.app.config['music_volume']:
-            self.app.config['music_volume'] = self.slider_music.val
+        current_music = hex_cfg.get_default("music_volume")
+        current_sfx = hex_cfg.get_default("sfx_volume")
+
+        if self.slider_music.val != current_music:
+            hex_cfg.update_setting("defaults", "music_volume", self.slider_music.val)
             self.app.sound.set_music_volume(self.slider_music.val)
 
-        if self.slider_sfx.val != self.app.config['sfx_volume']:
-            self.app.config['sfx_volume'] = self.slider_sfx.val
+        if self.slider_sfx.val != current_sfx:
+            hex_cfg.update_setting("defaults", "sfx_volume", self.slider_sfx.val)
             self.app.sound.set_sfx_volume(self.slider_sfx.val)
+
+        super().update()
 
     def draw(self):
         self._draw_ui()
-        self._draw_title("Settings", 80)
+        self._draw_title("Settings", hex_cfg.get_system("header_size"))
 
     def _set_size(self, val):
-        self.app.config['board_size'] = val
+        hex_cfg.update_setting("defaults", "board_size", val)
 
 
 class PlayMenuState(UIState):
@@ -126,7 +136,7 @@ class PlayMenuState(UIState):
     def __init__(self, app):
         super().__init__(app)
 
-        self.cx, self.cy = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+        self.cx, self.cy = hex_cfg.get_system("width") // 2, hex_cfg.get_system("height") // 2
 
         self.show_modes()
 
@@ -177,7 +187,7 @@ class GameState(State):
     def __init__(self, app, mode=GameMode.PVP, diff=hexlib.Difficulty.EASY):
         super().__init__(app)
 
-        board_size = app.config["board_size"]
+        board_size = hex_cfg.get_default("board_size")
         
         self.manager = hex_game.HexGameManager(
             app.screen, app.sound, board_size, mode, diff
