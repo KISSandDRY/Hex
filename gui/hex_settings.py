@@ -13,10 +13,13 @@ CAPTION = "Hex"
 HEX_TILE_SIZE = 30
 
 # Resources
-LOGO_PATH = "../resources/logo.png"
-ICON_PATH = LOGO_PATH
-BG_IMAGE_PATH = "../resources/bg.png"
 AUDIO_DIR = "../resources/audio"
+IMAGES_DIR = "../resources/images"
+
+LOGO_PATH = os.path.join(IMAGES_DIR, "logo.png")
+ICON_PATH = LOGO_PATH
+BG_IMAGE_PATH = os.path.join(IMAGES_DIR, "bg.png")
+
 THEME_SONG = os.path.join(AUDIO_DIR, "theme.mp3")
 
 # Sound Effects Map
