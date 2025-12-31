@@ -2,7 +2,7 @@ import os
 import sys
 import pygame
 
-from hex_settings import *
+from hex_config import hex_cfg
 from hex_sfx import SoundManager
 from hex_states import STATE_MAP
 
@@ -12,13 +12,15 @@ class Hex:
     def __init__(self):
         pygame.init()
         
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption(CAPTION)
-        if os.path.exists(ICON_PATH):
-            pygame.display.set_icon(pygame.image.load(ICON_PATH))
+        self.screen = pygame.display.set_mode((hex_cfg.get_system("width"), hex_cfg.get_system("height")))
+        pygame.display.set_caption(hex_cfg.get_system("caption"))
 
-        self.config = DEFAULT_CONFIG.copy()
-        self.sound = SoundManager(self.config['music_volume'], self.config['sfx_volume'])
+        icon_path = hex_cfg.get_image("logo")
+
+        if os.path.exists(icon_path):
+            pygame.display.set_icon(pygame.image.load(icon_path))
+
+        self.sound = SoundManager(hex_cfg.get_default("music_volume"), hex_cfg.get_default("sfx_volume"))
         self.clock = pygame.time.Clock()
 
         # Start with main menu state
@@ -33,6 +35,7 @@ class Hex:
         self.state = state(self, **kwargs)
 
     def quit(self):
+        hex_cfg.save()
         pygame.quit()
         sys.exit()
 
@@ -49,7 +52,7 @@ class Hex:
                 self.state.draw()
 
             pygame.display.flip()
-            self.clock.tick(FPS)
+            self.clock.tick(hex_cfg.get_system("fps"))
 
 
 if __name__ == "__main__":

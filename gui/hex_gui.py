@@ -1,7 +1,9 @@
+import os
 import pygame
 from typing import Optional
 
-from hex_settings import *
+from hex_config import hex_cfg
+
 
 class UIElement:
 
@@ -11,8 +13,8 @@ class UIElement:
 
 class Label(UIElement):
 
-    def __init__(self, text, x, y, font_size=FONT_SIZE, color=TEXT_COLOR):
-        self.font = pygame.font.SysFont(FONT_NAME, font_size)
+    def __init__(self, text, x, y, font_size=hex_cfg.get_system("font_size"), color=hex_cfg.get_color("text")):
+        self.font = pygame.font.SysFont(hex_cfg.get_system("font_name"), font_size)
         self.surf = self.font.render(text, True, color)
         self.rect = self.surf.get_rect(topleft=(x, y))
 
@@ -22,11 +24,11 @@ class Label(UIElement):
 
 class Button(UIElement):
 
-    def __init__(self, text, x, y, w, h, callback, font_size=FONT_SIZE):
+    def __init__(self, text, x, y, w, h, callback, font_size=hex_cfg.get_system("font_size")):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
         self.callback = callback
-        self.font = pygame.font.SysFont(FONT_NAME, font_size)
+        self.font = pygame.font.SysFont(hex_cfg.get_system("font_name"), font_size)
         self.hovered = False
 
     def update(self, events):
@@ -42,13 +44,13 @@ class Button(UIElement):
         return clicked
 
     def draw(self, screen):
-        color = HOVER_COLOR if self.hovered else PANEL_COLOR
-        border = ACCENT_COLOR if self.hovered else BORDER_COLOR
+        color = hex_cfg.get_color("hover") if self.hovered else hex_cfg.get_color("panel")
+        border = hex_cfg.get_color("accent") if self.hovered else hex_cfg.get_color("border")
         
         pygame.draw.rect(screen, color, self.rect, border_radius=8)
         pygame.draw.rect(screen, border, self.rect, 2, border_radius=8)
         
-        txt_surf = self.font.render(self.text, True, TEXT_COLOR)
+        txt_surf = self.font.render(self.text, True, hex_cfg.get_color("text"))
         txt_rect = txt_surf.get_rect(center=self.rect.center)
         screen.blit(txt_surf, txt_rect)
 
@@ -87,10 +89,10 @@ class Slider(UIElement):
         return changed
 
     def draw(self, screen):
-        pygame.draw.rect(screen, BORDER_COLOR, self.rect, border_radius=5)
+        pygame.draw.rect(screen, hex_cfg.get_color("border"), self.rect, border_radius=5)
         fill_w = self.handle_rect.centerx - self.rect.x
-        pygame.draw.rect(screen, ACCENT_COLOR, (self.rect.x, self.rect.y, fill_w, self.rect.height), border_radius=5)
-        pygame.draw.rect(screen, TEXT_COLOR, self.handle_rect, border_radius=5)
+        pygame.draw.rect(screen, hex_cfg.get_color("accent"), (self.rect.x, self.rect.y, fill_w, self.rect.height), border_radius=5)
+        pygame.draw.rect(screen, hex_cfg.get_color("text"), self.handle_rect, border_radius=5)
 
     def _update_handle_pos(self):
         ratio = (self.val - self.min) / (self.max - self.min)
@@ -117,7 +119,7 @@ class Selector(UIElement):
         btn_w = 40
         self.btn_prev = Button("<", x, y, btn_w, h, self._prev)
         self.btn_next = Button(">", x + w - btn_w, y, btn_w, h, self._next)
-        self.font = pygame.font.SysFont(FONT_NAME, FONT_SIZE)
+        self.font = pygame.font.SysFont(hex_cfg.get_system("font_name"), hex_cfg.get_system("font_size"))
 
     def update(self, events):
         click1 = self.btn_prev.update(events)
@@ -129,7 +131,7 @@ class Selector(UIElement):
         self.btn_next.draw(screen)
         
         txt = str(self.options[self.index])
-        surf = self.font.render(txt, True, TEXT_COLOR)
+        surf = self.font.render(txt, True, hex_cfg.get_color("text"))
         rect = surf.get_rect(center=self.rect.center)
         screen.blit(surf, rect)
 
@@ -183,14 +185,14 @@ class Image(UIElement):
 
 class Background(UIElement):
 
-    def __init__(self, image_path=BG_IMAGE_PATH):
+    def __init__(self, image_path=hex_cfg.get_image("bg")):
         self.image = None
         self.loaded = False
 
         if os.path.exists(image_path):
             try:
                 raw_img = pygame.image.load(image_path).convert()
-                scaled_img = pygame.transform.smoothscale(raw_img, (SCREEN_WIDTH, SCREEN_HEIGHT))
+                scaled_img = pygame.transform.smoothscale(raw_img, (hex_cfg.get_system("width"), hex_cfg.get_system("height")))
                 
                 self.image = scaled_img.convert()
                 self.loaded = True
@@ -208,4 +210,4 @@ class Background(UIElement):
         if self.loaded and self.image:
             screen.blit(self.image, (0, 0))
         else:
-            screen.fill(BG_COLOR)
+            screen.fill(hex_cfg.get_color("bg"))

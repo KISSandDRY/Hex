@@ -7,4 +7,6 @@ docs/
 build/*
 *.pyd
 
+user_settings.json
+
 TODO

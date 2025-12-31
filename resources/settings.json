@@ -1,0 +1,46 @@
+{
+    "system": {
+        "width": 1024,
+        "height": 720,
+        "fps": 60,
+        "caption": "Hex",
+        "tile_size": 30,
+        "font_name": "Bahnschrift",
+        "header_size": 80,
+        "font_size": 30
+    },
+    "images": {
+        "images_dir": "../resources/images",
+        "logo": "logo.png",
+        "bg": "bg.png"
+    },
+    "audio": {
+        "audio_dir": "../resources/audio",
+        "theme_song": "theme.mp3",
+        "sfx": {
+            "click": "click.mp3",
+            "win": "win.mp3",
+            "lose": "lose.mp3",
+            "move": "click.mp3"
+        }
+    },
+    "colors": {
+        "bg": [30, 32, 40],
+        "panel": [45, 48, 55],
+        "text": [240, 240, 240],
+        "accent": [100, 180, 255],
+        "hover": [60, 100, 200],
+        "border": [80, 80, 90],
+        "p1": [255, 80, 80],
+        "p2": [50, 100, 255],
+        "inactive_border": [60, 60, 70],
+        "empty_hex": [60, 60, 65],
+        "hex_border": [100, 100, 100],
+        "win_path": [255, 215, 0]
+    },
+    "defaults": {
+        "board_size": 11,
+        "music_volume": 0.5,
+        "sfx_volume": 0.7
+    }
+}
