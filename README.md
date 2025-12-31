@@ -1,3 +1,5 @@
+![Hex](./resources/images/hex_gameplay_example.png)
+
 # Hex Game
 
 Hex is a strategic board game played on a hexagonal grid where two players aim to connect their opposite sides with a continuous chain of stones.
