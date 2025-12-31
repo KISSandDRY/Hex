@@ -13,7 +13,9 @@ CAPTION = "Hex"
 HEX_TILE_SIZE = 30
 
 # Resources
-ICON_PATH = "../resources/icon.png"
+LOGO_PATH = "../resources/logo.png"
+ICON_PATH = LOGO_PATH
+BG_IMAGE_PATH = "../resources/bg.png"
 AUDIO_DIR = "../resources/audio"
 THEME_SONG = os.path.join(AUDIO_DIR, "theme.mp3")
 
