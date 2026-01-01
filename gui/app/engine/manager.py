@@ -3,11 +3,11 @@ import random
 import pygame
 import threading
 
-import hexlib
-import hex_draw
-from hex_gui import Button
-from hex_config import hex_cfg
-from hex_defs import PLAYER_1, PLAYER_2, EMPTY, GameMode
+from app.defs import *
+from app.ui.renderer import *
+from app.engine import hexlib
+from app.config import hex_cfg
+from app.ui.widgets import Button
 
 
 class HexGameManager:
@@ -60,10 +60,10 @@ class HexGameManager:
 
     def draw(self):
         self.screen.fill(hex_cfg.get_color("bg"))
-        hex_draw.draw_board(self.screen, self.board, self.render_cfg, self.turn, self.last_move)
+        draw_board(self.screen, self.board, self.render_cfg, self.turn, self.last_move)
 
         if self.winner != EMPTY:
-            hex_draw.draw_winning_path(self.screen, self.board, self.winner, self.render_cfg)
+            draw_winning_path(self.screen, self.board, self.winner, self.render_cfg)
             self._draw_winner_text()
         else:
             self._draw_turn_label()
@@ -131,7 +131,7 @@ class HexGameManager:
 
         for idx in self.board.get_legal_moves():
             r, c = self.board.get_coord(idx)
-            px, py = hex_draw.grid_to_pixel(r, c, size, off_x, off_y)
+            px, py = grid_to_pixel(r, c, size, off_x, off_y)
             dist = (px - mx) ** 2 + (py - my) ** 2
 
             if dist < size**2 and dist < best_dist:

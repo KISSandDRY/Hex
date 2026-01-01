@@ -6,6 +6,7 @@ compile_flags.txt
 docs/
 build/*
 *.pyd
+*.pyi
 
 user_settings.json
 

@@ -2,9 +2,9 @@ import os
 import sys
 import pygame
 
-from hex_config import hex_cfg
-from hex_sfx import SoundManager
-from hex_states import STATE_MAP
+from app.config import hex_cfg
+from app.ui.states import STATE_MAP
+from app.utils.sound import SoundManager
 
 
 class Hex:
