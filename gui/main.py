@@ -41,14 +41,17 @@ class Hex:
 
     def run(self):
         while True:
-            events = pygame.event.get()
-            for e in events:
-                if e.type == pygame.QUIT:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
                     self.quit()
             
+                if self.state:
+                    self.state.handle_event(event)
+
             if self.state:
-                self.state.handle_input(events)
                 self.state.update()
+
+            if self.state:
                 self.state.draw()
 
             pygame.display.flip()
