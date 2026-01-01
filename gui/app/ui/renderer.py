@@ -3,8 +3,8 @@ import pygame
 import pygame.gfxdraw
 from functools import lru_cache
 
-from hex_config import hex_cfg
-from hex_defs import PLAYER_1, PLAYER_2
+from app.config import hex_cfg
+from app.defs import PLAYER_1, PLAYER_2
 
 @lru_cache(maxsize=256)
 def get_hex_corners(center_x, center_y, size):

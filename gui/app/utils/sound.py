@@ -1,8 +1,7 @@
 import os
 import pygame
 
-from hex_config import hex_cfg
-
+from app.config import hex_cfg
 
 class SoundManager:
 

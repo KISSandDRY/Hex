@@ -1,10 +1,11 @@
 import pygame
 
-import hexlib
-import hex_game
-from hex_defs import GameMode
-from hex_config import hex_cfg
-from hex_gui import Background, Button, Image, Label, Slider, Selector
+from app.ui.widgets import *
+from app.engine import hexlib
+from app.defs import GameMode
+from app.config import hex_cfg
+from app.engine.manager import HexGameManager
+
 
 class State:
 
@@ -189,7 +190,7 @@ class GameState(State):
 
         board_size = hex_cfg.get_default("board_size")
         
-        self.manager = hex_game.HexGameManager(
+        self.manager = HexGameManager(
             app.screen, app.sound, board_size, mode, diff
         )
 
