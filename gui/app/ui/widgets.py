@@ -7,8 +7,14 @@ from app.config import hex_cfg
 
 class UIElement:
 
-    def draw(self, screen): pass
-    def update(self, events) -> Optional[bool]: pass
+    def draw(self, screen): 
+        pass
+
+    def update(self) -> Optional[bool]: 
+        pass
+
+    def handle_event(self, event) -> Optional[bool]: 
+        return False
 
 
 class Label(UIElement):
@@ -24,24 +30,23 @@ class Label(UIElement):
 
 class Button(UIElement):
 
-    def __init__(self, text, x, y, w, h, callback, font_size=hex_cfg.get_system("font_size")):
+    def __init__(self, text, font_size, x, y, w, h, callback):
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
         self.callback = callback
         self.font = pygame.font.SysFont(hex_cfg.get_system("font_name"), font_size)
         self.hovered = False
 
-    def update(self, events):
-        mx, my = pygame.mouse.get_pos()
-        self.hovered = self.rect.collidepoint(mx, my)
-        
-        clicked = False
-        for e in events:
-            if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1 and self.hovered:
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.rect.collidepoint(event.pos):
                 self.callback()
-                clicked = True
+                return True
 
-        return clicked
+        return False
+
+    def update(self):
+        self.hovered = self.rect.collidepoint(pygame.mouse.get_pos())
 
     def draw(self, screen):
         color = hex_cfg.get_color("hover") if self.hovered else hex_cfg.get_color("panel")
@@ -68,25 +73,21 @@ class Slider(UIElement):
         self.dragging = False
         self._update_handle_pos()
 
-    def update(self, events):
-        changed = False
-        mx, my = pygame.mouse.get_pos()
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if self.handle_rect.collidepoint(event.pos) or self.rect.collidepoint(event.pos):
+                self.dragging = True
+                self._update_val_from_pos(event.pos[0])
+                return True
 
-        for e in events:
-            if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
-                if self.handle_rect.collidepoint(mx, my) or self.rect.collidepoint(mx, my):
-                    self.dragging = True
-                    self._update_val_from_pos(mx)
-                    changed = True
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.dragging = False
 
-            elif e.type == pygame.MOUSEBUTTONUP:
-                self.dragging = False
-
-            elif e.type == pygame.MOUSEMOTION and self.dragging:
-                self._update_val_from_pos(mx)
-                changed = True
-
-        return changed
+        elif event.type == pygame.MOUSEMOTION and self.dragging:
+            self._update_val_from_pos(event.pos[0])
+            return True
+            
+        return False
 
     def draw(self, screen):
         pygame.draw.rect(screen, hex_cfg.get_color("border"), self.rect, border_radius=5)
@@ -113,18 +114,24 @@ class Selector(UIElement):
         self.options = options
         self.callback = callback
         
-        try: self.index = options.index(current_val)
-        except ValueError: self.index = 0
+        try: 
+            self.index = options.index(current_val)
+        except ValueError: 
+            self.index = 0
 
         btn_w = 40
-        self.btn_prev = Button("<", x, y, btn_w, h, self._prev)
-        self.btn_next = Button(">", x + w - btn_w, y, btn_w, h, self._next)
+        self.btn_prev = Button("<", hex_cfg.get_system("font_size"), x, y, btn_w, h, self._prev)
+        self.btn_next = Button(">", hex_cfg.get_system("font_size"), x + w - btn_w, y, btn_w, h, self._next)
         self.font = pygame.font.SysFont(hex_cfg.get_system("font_name"), hex_cfg.get_system("font_size"))
 
-    def update(self, events):
-        click1 = self.btn_prev.update(events)
-        click2 = self.btn_next.update(events)
+    def handle_event(self, event):
+        click1 = self.btn_prev.handle_event(event)
+        click2 = self.btn_next.handle_event(event)
         return click1 or click2
+
+    def update(self):
+        self.btn_prev.update()
+        self.btn_next.update()
 
     def draw(self, screen):
         self.btn_prev.draw(screen)
@@ -176,9 +183,6 @@ class Image(UIElement):
         else:
             self.rect.topleft = (x, y)
 
-    def update(self, events):
-        pass
-
     def draw(self, screen):
         screen.blit(self.surf, self.rect)
 
@@ -203,7 +207,7 @@ class Background(UIElement):
         else:
             print(f"Background not found at {image_path}, using solid color.")
 
-    def update(self, events) -> Optional[bool]:
+    def update(self) -> Optional[bool]:
         pass
 
     def draw(self, screen):

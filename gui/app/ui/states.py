@@ -4,6 +4,7 @@ from app.ui.widgets import *
 from app.engine import hexlib
 from app.defs import GameMode
 from app.config import hex_cfg
+from app.ui.renderer import HexRenderer
 from app.engine.manager import HexGameManager
 
 
@@ -12,7 +13,7 @@ class State:
     def __init__(self, app):
         self.app = app
 
-    def handle_input(self, events):
+    def handle_event(self, event):
         pass
 
     def update(self) -> None:
@@ -30,18 +31,22 @@ class UIState(State):
         self._header_font = pygame.font.SysFont(hex_cfg.get_system("font_name"), hex_cfg.get_system("header_size"))
         self._title_font = pygame.font.SysFont(hex_cfg.get_system("font_name"), 60)
 
-    def _handle_ui(self, events):
+    def handle_event(self, event):
         for el in self.ui_elements:
-            if hasattr(el, "update"):
-                clicked = el.update(events)
-                if isinstance(el, Button) and clicked:
-                    self.app.sound.play("click")
+            if el.handle_event(event):
+                if isinstance(el, Button):
+                     self.app.sound.play("click")
+                return 
+
+    def update(self):
+        for el in self.ui_elements:
+            el.update()
 
     def _draw_ui(self):
         for el in self.ui_elements:
             el.draw(self.app.screen)
 
-    def _draw_title(self, text, y = 100, font = None):
+    def _draw_title(self, text, y, font = None):
         font = font or self._title_font
         surf = font.render(text, True, hex_cfg.get_color("accent"))
         rect = surf.get_rect(center=(hex_cfg.get_system("width") // 2, y))
@@ -59,20 +64,17 @@ class MenuState(UIState):
         self.ui_elements = [
             Background(),
 
-            Button("Play", cx - btn_w // 2, cy - 50, btn_w, btn_h,
+            Button("Play", hex_cfg.get_system("font_size"), cx - btn_w // 2, cy - 50, btn_w, btn_h,
                    lambda: self.app.change_state("play_menu")),
 
-            Button("Settings", cx - btn_w // 2, cy - 50 + gap, btn_w, btn_h,
+            Button("Settings", hex_cfg.get_system("font_size"), cx - btn_w // 2, cy - 50 + gap, btn_w, btn_h,
                    lambda: self.app.change_state("settings")),
 
-            Button("Quit", cx - btn_w // 2, cy - 50 + gap * 2, btn_w, btn_h,
+            Button("Quit", hex_cfg.get_system("font_size"), cx - btn_w // 2, cy - 50 + gap * 2, btn_w, btn_h,
                    self.app.quit),
             
             Image(hex_cfg.get_image("logo"), cx - 100, 50, 200, 200),
         ]
-
-    def handle_input(self, events):
-        self._handle_ui(events)
 
     def draw(self) -> None:
         self._draw_ui()
@@ -103,14 +105,13 @@ class SettingsState(UIState):
             self.selector_size,
             self.slider_music,
             self.slider_sfx,
-            Button("Back", cx - 100, 500, 200, 50,
+            Button("Back", hex_cfg.get_system("font_size"), cx - 100, 500, 200, 50,
                    lambda: app.change_state("main_menu")),
         ]
 
-    def handle_input(self, events):
-        self._handle_ui(events)
-
     def update(self):
+        super().update()
+
         current_music = hex_cfg.get_default("music_volume")
         current_sfx = hex_cfg.get_default("sfx_volume")
 
@@ -122,11 +123,9 @@ class SettingsState(UIState):
             hex_cfg.update_setting("defaults", "sfx_volume", self.slider_sfx.val)
             self.app.sound.set_sfx_volume(self.slider_sfx.val)
 
-        super().update()
-
     def draw(self):
         self._draw_ui()
-        self._draw_title("Settings", hex_cfg.get_system("header_size"))
+        self._draw_title("Settings", 100)
 
     def _set_size(self, val):
         hex_cfg.update_setting("defaults", "board_size", val)
@@ -136,44 +135,38 @@ class PlayMenuState(UIState):
 
     def __init__(self, app):
         super().__init__(app)
-
         self.cx, self.cy = hex_cfg.get_system("width") // 2, hex_cfg.get_system("height") // 2
-
         self.show_modes()
 
     def show_modes(self):
         self.ui_elements = [
             Background(),
 
-            Button("Player vs Player", self.cx - 125, self.cy - 60, 250, 50,
+            Button("Player vs Player", hex_cfg.get_system("font_size"), self.cx - 125, self.cy - 60, 250, 50,
                    lambda: self.app.change_state("game", mode=GameMode.PVP)),
-        
-            Button("Player vs AI", self.cx - 125, self.cy + 10, 250, 50,
+
+            Button("Player vs AI", hex_cfg.get_system("font_size"), self.cx - 125, self.cy + 10, 250, 50,
                    self.show_difficulties),
 
-            Button("Back", self.cx - 125, self.cy + 150, 250, 50,
+            Button("Back", hex_cfg.get_system("font_size"), self.cx - 125, self.cy + 150, 250, 50,
                    lambda: self.app.change_state("main_menu")),
         ]
 
     def show_difficulties(self):
         self.ui_elements = [
             Background(),
-
-            Button("Easy", self.cx - 125, self.cy - 60, 250, 50,
+            Button("Easy", hex_cfg.get_system("font_size"), self.cx - 125, self.cy - 60, 250, 50,
                    lambda: self._start_ai_game(hexlib.Difficulty.EASY)),
 
-            Button("Medium", self.cx - 125, self.cy + 10, 250, 50,
+            Button("Medium", hex_cfg.get_system("font_size"), self.cx - 125, self.cy + 10, 250, 50,
                    lambda: self._start_ai_game(hexlib.Difficulty.MEDIUM)),
 
-            Button("Hard", self.cx - 125, self.cy + 80, 250, 50,
+            Button("Hard", hex_cfg.get_system("font_size"), self.cx - 125, self.cy + 80, 250, 50,
                    lambda: self._start_ai_game(hexlib.Difficulty.HARD)),
-
-            Button("Back", self.cx - 125, self.cy + 180, 250, 50,
+            
+            Button("Back", hex_cfg.get_system("font_size"), self.cx - 125, self.cy + 180, 250, 50,
                    self.show_modes),
         ]
-
-    def handle_input(self, events: list[pygame.event.Event]) -> None:
-        self._handle_ui(events)
 
     def draw(self) -> None:
         self._draw_ui()
@@ -190,12 +183,20 @@ class GameState(State):
 
         board_size = hex_cfg.get_default("board_size")
         
+        self.renderer = HexRenderer(app.screen, board_size)
+        
         self.manager = HexGameManager(
-            app.screen, app.sound, board_size, mode, diff
+            self.renderer, 
+            app.sound, 
+            board_size, 
+            mode, 
+            diff
         )
 
-    def handle_input(self, events):
-        if self.manager.handle_input(events) == "main_menu":
+    def handle_event(self, event):
+        self.manager.handle_event(event)
+
+        if self.manager.exit_to_menu:
             self.app.change_state("main_menu")
 
     def update(self):
