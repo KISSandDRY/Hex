@@ -28,7 +28,8 @@ file(GLOB_RECURSE HEX_HEADERS
 add_library(hex_core STATIC ${HEX_SOURCES} ${HEX_HEADERS})
 target_include_directories(hex_core PUBLIC ${CORE_INCLUDE_DIR})
 
-set(Python3_FIND_VIRTUALENV FIRST)
+set_target_properties(hex_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 include(FetchContent)
@@ -45,13 +46,12 @@ target_link_libraries(hexlib PRIVATE hex_core)
 add_custom_command(TARGET hexlib POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     $<TARGET_FILE:hexlib>
-    ${CMAKE_SOURCE_DIR}/gui/app/engine/hexlib.pyd
+    ${CMAKE_SOURCE_DIR}/gui/app/engine/$<TARGET_FILE_NAME:hexlib>
 )
 
 add_custom_command(TARGET hexlib POST_BUILD
     COMMAND ${Python3_EXECUTABLE} -m pybind11_stubgen hexlib --output-dir "${CMAKE_SOURCE_DIR}/gui/app/engine"
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/gui/app/engine"
-    COMMENT "Generating type stubs..."
 )
 
 file(GLOB TEST_SOURCES "${CORE_SRC_DIR}/HexAITest.cpp")
