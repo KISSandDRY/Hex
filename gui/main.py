@@ -3,7 +3,7 @@ import sys
 import pygame
 
 from app.config import hex_cfg
-from app.ui.states import STATE_MAP
+from app.ui.states import MenuState
 from app.utils.sound import SoundManager
 
 
@@ -24,14 +24,9 @@ class Hex:
         self.clock = pygame.time.Clock()
 
         # Start with main menu state
-        self.change_state("main_menu")
+        self.set_state(MenuState)
 
-    def change_state(self, state_name, **kwargs):
-        state = STATE_MAP.get(state_name)
-
-        if not state:
-            raise ValueError(f"Unknown state: {state_name}")
-        
+    def set_state(self, state, **kwargs):
         self.state = state(self, **kwargs)
 
     def quit(self):

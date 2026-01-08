@@ -65,10 +65,10 @@ class MenuState(UIState):
             Background(),
 
             Button("Play", hex_cfg.get_system("font_size"), cx - btn_w // 2, cy - 50, btn_w, btn_h,
-                   lambda: self.app.change_state("play_menu")),
+                   lambda: self.app.set_state(PlayMenuState)),
 
             Button("Settings", hex_cfg.get_system("font_size"), cx - btn_w // 2, cy - 50 + gap, btn_w, btn_h,
-                   lambda: self.app.change_state("settings")),
+                   lambda: self.app.set_state(SettingsState)),
 
             Button("Quit", hex_cfg.get_system("font_size"), cx - btn_w // 2, cy - 50 + gap * 2, btn_w, btn_h,
                    self.app.quit),
@@ -106,7 +106,7 @@ class SettingsState(UIState):
             self.slider_music,
             self.slider_sfx,
             Button("Back", hex_cfg.get_system("font_size"), cx - 100, 500, 200, 50,
-                   lambda: app.change_state("main_menu")),
+                   lambda: app.set_state(MenuState)),
         ]
 
     def update(self):
@@ -143,13 +143,13 @@ class PlayMenuState(UIState):
             Background(),
 
             Button("Player vs Player", hex_cfg.get_system("font_size"), self.cx - 125, self.cy - 60, 250, 50,
-                   lambda: self.app.change_state("game", mode=GameMode.PVP)),
+                   lambda: self.app.set_state(GameState, mode=GameMode.PVP)),
 
             Button("Player vs AI", hex_cfg.get_system("font_size"), self.cx - 125, self.cy + 10, 250, 50,
                    self.show_difficulties),
 
             Button("Back", hex_cfg.get_system("font_size"), self.cx - 125, self.cy + 150, 250, 50,
-                   lambda: self.app.change_state("main_menu")),
+                   lambda: self.app.set_state(MenuState)),
         ]
 
     def show_difficulties(self):
@@ -173,7 +173,7 @@ class PlayMenuState(UIState):
         self._draw_title("Select Mode", 100)
 
     def _start_ai_game(self, diff):
-        self.app.change_state("game", mode=GameMode.PVAI, diff=hexlib.Difficulty(diff))
+        self.app.set_state(GameState, mode=GameMode.PVAI, diff=hexlib.Difficulty(diff))
 
 
 class GameState(State):
@@ -197,18 +197,10 @@ class GameState(State):
         self.manager.handle_event(event)
 
         if self.manager.exit_to_menu:
-            self.app.change_state("main_menu")
+            self.app.set_state(MenuState)
 
     def update(self):
         self.manager.update()
 
     def draw(self):
         self.manager.draw()
-
-
-STATE_MAP = {
-    "main_menu": MenuState,
-    "settings": SettingsState,
-    "play_menu": PlayMenuState,
-    "game": GameState
-}
