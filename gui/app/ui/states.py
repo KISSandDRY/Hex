@@ -2,8 +2,8 @@ import pygame
 
 from .widgets import *
 from .renderer import HexRenderer
-from app.defs import GameMode, Difficulty
 from app.config import hex_cfg
+from app.defs import GameMode, Difficulty
 from app.engine.manager import HexGameManager
 
 
@@ -154,6 +154,7 @@ class PlayMenuState(UIState):
     def show_difficulties(self):
         self.ui_elements = [
             Background(),
+
             Button("Easy", hex_cfg.get_system("font_size"), self.cx - 125, self.cy - 60, 250, 50,
                    lambda: self._start_ai_game(Difficulty.EASY)),
 

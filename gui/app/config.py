@@ -16,27 +16,11 @@ class HexConfig:
 
         return cls._instance
 
-    def _load(self):
-        self.data = {}
-        
-        try:
-            with open(self.DEFAULT_PATH, 'r') as f:
-                self.data = json.load(f)
+    def __getattr__(self, name):
+        if name in self.data:
+            return self.data[name]
 
-        except FileNotFoundError:
-            raise RuntimeError(f"{self.DEFAULT_PATH} not found!")
-
-        if os.path.exists(self.USER_PATH):
-            try:
-                with open(self.USER_PATH, 'r') as f:
-                    user_data = json.load(f)
-                    self._deep_update(self.data, user_data)
-
-            except json.JSONDecodeError:
-                print("User settings corrupted. Reverting to defaults.")
-
-        self.audio_dir = self.data["audio"]["audio_dir"]
-        self.images_dir = self.data["images"]["images_dir"]
+        raise AttributeError(f"'HexConfig' object has no attribute '{name}'")
 
     def save(self):
         save_data = {
@@ -56,12 +40,6 @@ class HexConfig:
         else:
             print(f"Warning: Key {key} not found in section {section}")
 
-    def _deep_update(self, original, update):
-        for key, value in update.items():
-            if isinstance(value, dict) and key in original:
-                self._deep_update(original[key], value)
-            else:
-                original[key] = value
 
     def get_color(self, name):
         return tuple(self.data["colors"][name])
@@ -90,11 +68,35 @@ class HexConfig:
             
         return os.path.join(self.audio_dir, filename)
 
-    def __getattr__(self, name):
-        if name in self.data:
-            return self.data[name]
 
-        raise AttributeError(f"'HexConfig' object has no attribute '{name}'")
+    def _deep_update(self, original, update):
+        for key, value in update.items():
+            if isinstance(value, dict) and key in original:
+                self._deep_update(original[key], value)
+            else:
+                original[key] = value
+
+    def _load(self):
+        self.data = {}
+        
+        try:
+            with open(self.DEFAULT_PATH, 'r') as f:
+                self.data = json.load(f)
+
+        except FileNotFoundError:
+            raise RuntimeError(f"{self.DEFAULT_PATH} not found!")
+
+        if os.path.exists(self.USER_PATH):
+            try:
+                with open(self.USER_PATH, 'r') as f:
+                    user_data = json.load(f)
+                    self._deep_update(self.data, user_data)
+
+            except json.JSONDecodeError:
+                print("User settings corrupted. Reverting to defaults.")
+
+        self.audio_dir = self.data["audio"]["audio_dir"]
+        self.images_dir = self.data["images"]["images_dir"]
 
 
 hex_cfg = HexConfig()

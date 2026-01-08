@@ -44,7 +44,6 @@ namespace {
     };
 
     // Thread Local Storage 
-    // Reusing memory across turns is critical for MCTS performance.
     
     struct ThreadLocalContext {
         std::mt19937 rng{std::random_device{}()};

@@ -3,6 +3,7 @@ import pygame
 
 from app.config import hex_cfg
 
+
 class SoundManager:
 
     def __init__(self, initial_music_vol, initial_sfx_vol):
@@ -15,6 +16,19 @@ class SoundManager:
         
         self.sounds = {}
         self._load_assets()
+
+    def play(self, name):
+        if name in self.sounds:
+            self.sounds[name].play()
+
+    def set_music_volume(self, val):
+        self.music_vol = val
+        pygame.mixer.music.set_volume(self.music_vol)
+
+    def set_sfx_volume(self, val):
+        self.sfx_vol = val
+        for snd in self.sounds.values():
+            snd.set_volume(self.sfx_vol)
 
     def _load_assets(self):
         if "audio" in hex_cfg.data and "sfx" in hex_cfg.data["audio"]:
@@ -46,16 +60,3 @@ class SoundManager:
 
         except (pygame.error, KeyError) as e:
             print(f"Error loading music: {e}")
-
-    def play(self, name):
-        if name in self.sounds:
-            self.sounds[name].play()
-
-    def set_music_volume(self, val):
-        self.music_vol = val
-        pygame.mixer.music.set_volume(self.music_vol)
-
-    def set_sfx_volume(self, val):
-        self.sfx_vol = val
-        for snd in self.sounds.values():
-            snd.set_volume(self.sfx_vol)

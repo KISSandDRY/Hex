@@ -6,6 +6,7 @@ from functools import lru_cache
 from app.defs import *
 from app.config import hex_cfg
 
+
 class HexRenderer:
 
     def __init__(self, screen, board_size):
@@ -94,7 +95,6 @@ class HexRenderer:
             ))
 
         return points 
-
 
     def _draw_turn_info(self, turn, thinking, mode, human_player):
         if thinking:

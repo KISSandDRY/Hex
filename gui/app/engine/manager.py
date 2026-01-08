@@ -2,8 +2,8 @@ import random
 import pygame
 import threading
 
-from app.engine import hexlib
 from app.defs import *
+from app.engine import hexlib
 
 
 class HexGameManager:
