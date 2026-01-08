@@ -3,10 +3,8 @@ import pygame
 import pygame.gfxdraw
 from functools import lru_cache
 
-from app.defs import GameMode
+from app.defs import *
 from app.config import hex_cfg
-from app.defs import PLAYER_1, PLAYER_2
-
 
 class HexRenderer:
 

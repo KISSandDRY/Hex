@@ -2,10 +2,8 @@ import random
 import pygame
 import threading
 
-from app.defs import *
-from app.ui.renderer import *
 from app.engine import hexlib
-from app.ui.widgets import Button
+from app.defs import *
 
 
 class HexGameManager:
@@ -31,18 +29,7 @@ class HexGameManager:
         else:
             self.human_player = EMPTY
 
-        self.exit_to_menu = False
-
-        self.menu_btn = Button("Menu", hex_cfg.get_system("font_size"), 20, 20, 100, 40, self._menu_callback)
-
     def handle_event(self, event):
-        if self.exit_to_menu:
-            return "main_menu"
-
-        if self.menu_btn.handle_event(event):
-            self.sound.play("click")
-            return
-
         if self.winner != EMPTY or self.thinking:
             return
 
@@ -54,8 +41,6 @@ class HexGameManager:
                 self._attempt_move(*grid_pos)
 
     def update(self):
-        self.menu_btn.update()
-
         if self.winner == EMPTY and self.mode == GameMode.PVAI and self.turn != self.human_player:
             if not self.thinking:
                 self.thinking = True
@@ -77,7 +62,6 @@ class HexGameManager:
             self.mode,
             self.human_player
         )
-        self.menu_btn.draw(self.renderer.screen)
 
     def _run_ai(self):
         self.ai_move = hexlib.HexAI.get_move(self.board, self.turn, self.difficulty)
@@ -94,6 +78,3 @@ class HexGameManager:
                 self.sound.play("win" if is_win else "lose")
             else:
                 self.turn = PLAYER_2 if self.turn == PLAYER_1 else PLAYER_1
-
-    def _menu_callback(self):
-        self.exit_to_menu = True

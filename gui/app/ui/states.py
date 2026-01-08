@@ -1,10 +1,9 @@
 import pygame
 
-from app.ui.widgets import *
-from app.engine import hexlib
-from app.defs import GameMode
+from .widgets import *
+from .renderer import HexRenderer
+from app.defs import GameMode, Difficulty
 from app.config import hex_cfg
-from app.ui.renderer import HexRenderer
 from app.engine.manager import HexGameManager
 
 
@@ -156,13 +155,13 @@ class PlayMenuState(UIState):
         self.ui_elements = [
             Background(),
             Button("Easy", hex_cfg.get_system("font_size"), self.cx - 125, self.cy - 60, 250, 50,
-                   lambda: self._start_ai_game(hexlib.Difficulty.EASY)),
+                   lambda: self._start_ai_game(Difficulty.EASY)),
 
             Button("Medium", hex_cfg.get_system("font_size"), self.cx - 125, self.cy + 10, 250, 50,
-                   lambda: self._start_ai_game(hexlib.Difficulty.MEDIUM)),
+                   lambda: self._start_ai_game(Difficulty.MEDIUM)),
 
             Button("Hard", hex_cfg.get_system("font_size"), self.cx - 125, self.cy + 80, 250, 50,
-                   lambda: self._start_ai_game(hexlib.Difficulty.HARD)),
+                   lambda: self._start_ai_game(Difficulty.HARD)),
             
             Button("Back", hex_cfg.get_system("font_size"), self.cx - 125, self.cy + 180, 250, 50,
                    self.show_modes),
@@ -173,18 +172,17 @@ class PlayMenuState(UIState):
         self._draw_title("Select Mode", 100)
 
     def _start_ai_game(self, diff):
-        self.app.set_state(GameState, mode=GameMode.PVAI, diff=hexlib.Difficulty(diff))
+        self.app.set_state(GameState, mode=GameMode.PVAI, diff=diff)
 
 
 class GameState(State):
 
-    def __init__(self, app, mode=GameMode.PVP, diff=hexlib.Difficulty.EASY):
+    def __init__(self, app, mode=GameMode.PVP, diff=Difficulty.EASY):
         super().__init__(app)
 
         board_size = hex_cfg.get_default("board_size")
         
         self.renderer = HexRenderer(app.screen, board_size)
-        
         self.manager = HexGameManager(
             self.renderer, 
             app.sound, 
@@ -193,14 +191,24 @@ class GameState(State):
             diff
         )
 
+        self.menu_btn = Button(
+            "Menu", 
+            hex_cfg.get_system("font_size"), 
+            20, 20, 100, 40, 
+            lambda: self.app.set_state(MenuState)
+        )
+
     def handle_event(self, event):
+        if self.menu_btn.handle_event(event):
+            self.app.sound.play("click")
+            return
+
         self.manager.handle_event(event)
 
-        if self.manager.exit_to_menu:
-            self.app.set_state(MenuState)
-
     def update(self):
+        self.menu_btn.update()
         self.manager.update()
 
     def draw(self):
         self.manager.draw()
+        self.menu_btn.draw(self.app.screen)
